@@ -167,13 +167,16 @@ class Connection():
                 responseStr = "" #self.serialConn.readline().decode()
                 i = 0
                 try:
-                    while responseStr.find("Safety Printer MCU") == -1: # Wait for arduino boot and answer
-                        i += 1                    
+                    while responseStr.find("ping:$22343$pong") == -1: # Wait for arduino boot and answer
+                        self.serialConn.flush()
+                        self.serialConn.write("<ping>".encode())
+                        i += 1
                         time.sleep(0.50)
-                        self.terminal("Waiting Safety Printer MCU answer...","Info")
-                        responseStr = self.serialConn.readline().decode() 
+                        self._logger.info("Waiting Safety Printer MCU answer...")
+                        responseStr = self.serialConn.readline().decode()
+                        self._logger.info("Response: "+responseStr)
                         if responseStr:
-                            self.terminal(responseStr,"Info")   
+                            self._logger.debug(responseStr)   
                         if i > 40:
                             self.forceRenewConn = True
                             self.connFail = True
@@ -721,7 +724,7 @@ class Connection():
                 
                 if data: 
                     data = data.strip()
-                    if ((command.lower() == "<r1>") or (command.lower() == "<r2>") or (command.lower() == "<r4>") or (command.lower() == "<r5>")):
+                    if ((command.lower() == "<r1>") or (command.lower() == "<r2>") or (command.lower() == "<r4>") or (command.lower() == "<r5>") or (command.lower() == "<r6>")):
                         data = self.crcCheck(data)
                         if not data:
                             self.waitingResponse = False
